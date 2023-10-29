@@ -70,6 +70,16 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+//movement
+	int move =0;
+
+//set up 
+	char save[11] = {'*',' ','*',' ','*',' ','*',' ',' ',' ',' '} ;	
+	char pass[8] = {'1',' ','2',' ','3',' ','4',' '};
+	
+	int x=0;
+	int count = 0;
+	int check = 0;
 
 //SETTINGS
 int screen=0;
@@ -216,7 +226,6 @@ int main(void)
 	
 
 	
-	
 //ADC BATTERY
 	uint32_t adc_value =0;
 	int nguyen =0;
@@ -239,13 +248,8 @@ int main(void)
 	lcd_send_string("SAVING MODE...");
 	delay_ms(1000);
 
-	
-	//set up 
-	char save[8] = {'*',' ','*',' ','*',' ','*',' '} ; 
-
-	int x=0;
-	int count = 0;
-	int check = 0;
+	cursor();
+	int count =0;
 	
 	//check password to weighting
 	int correct =0;
@@ -292,8 +296,6 @@ int main(void)
 			}
 		}*/
 //START CHECKING PASSWORD
-while(screen == 0)
-{
 		while(correct == 0)
 			{
     /* USER CODE END WHILE */
@@ -322,10 +324,10 @@ while(screen == 0)
 								{
 									switch (i)
 									{
-										case 0: if(save[i] == '1') count++;
-										case 2: if(save[i] == '2') count++;
-										case 4: if(save[i] == '3') count++;
-										case 6: if(save[i] == '4') count++;
+										case 0: if(save[i] == pass[0]) count++;
+										case 2: if(save[i] == pass[2]) count++;
+										case 4: if(save[i] == pass[4]) count++;
+										case 6: if(save[i] == pass[6]) count++;
 										break;
 									}
 								}
@@ -418,7 +420,92 @@ while(screen == 0)
 			}
 		}
 			
-	while (correct == 1)
+while (correct ==1)
+{
+	//FUNCTION 1
+	lcd_put_cur(0,1);
+	lcd_send_string("BATTERY POWER");
+	
+	//FUNTION 2
+	lcd_put_cur(1,1);
+	lcd_send_string("CHANGE PASS");
+	
+	//CURSOR
+	lcd_put_cur(move,0);
+	lcd_send_data(0);
+	
+	//MOVE UP
+	if (HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_3) == GPIO_PIN_RESET)
+	{
+		lcd_put_cur(1,0);
+		lcd_send_string(" ");
+		move=0;
+	}
+	//MOVE DOWN
+	if (HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_4) == GPIO_PIN_RESET)
+	{
+		lcd_put_cur(0,0);
+		lcd_send_string(" ");
+		move =1;
+	}
+	//CHOOSE 
+	if (HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_5) == GPIO_PIN_RESET)
+	{
+		//FUNC 1: BATTERY POWER
+		switch(move)
+		{
+			case 0: 
+				{
+					lcd_clear();
+					while (move ==0)
+						{
+							//ADC - BATTERY
+							HAL_ADC_Start(&hadc1);
+							delay_ms(50);
+							adc_value = HAL_ADC_GetValue(&hadc1);
+							HAL_ADC_Stop(&hadc1);
+							
+							check_batt = adc_value;
+							adc_value= 0.77*(adc_value);
+							nguyen = adc_value /1000;
+							thap_phan = adc_value % 1000;
+							thap_phan = thap_phan /10;
+							sprintf( battery_value, "%d %d",nguyen, thap_phan);
+					//  sprintf( battery_value,"%d" ,check_batt);
+							
+							//DISPLAY BATTERY
+							lcd_put_cur(0,0);
+							lcd_send_string("BATTERY: ");
+							lcd_put_cur(1,0);
+							lcd_send_string("HEALTH: ");
+							lcd_put_cur(0,10);
+							lcd_send_string(battery_value);
+							lcd_put_cur(0,11);
+							lcd_send_string(".");
+							lcd_put_cur(0,14);
+							lcd_send_string("V");
+							
+							delay_ms(200);
+						}
+				}
+			case 1:
+				{
+					lcd_clear();
+					lcd_put_cur(0,0);
+					lcd_send_string(" INTO CHANGING");
+					delay_ms(3000);
+					lcd_clear();
+					break;
+				}
+			}
+		
+		//FUNC 2: CHANGE PASSWORD
+//		if(move==0)
+	}
+
+}
+/*		
+	while (move ==1)
 		{
 			//ADC - BATTERY
 			HAL_ADC_Start(&hadc1);
@@ -445,65 +532,14 @@ while(screen == 0)
 			lcd_send_string(".");
 			lcd_put_cur(0,14);
 			lcd_send_string("V");
-
 			
-			
-			//DISPLAY STATUS
-/*			if (check_batt >= 3700)
-			{
-				lcd_put_cur(1,8);
-				lcd_send_string("  HIGH  ");
-			}
-			if (3400 <= check_batt <3700)
-			{
-				lcd_put_cur(1,8);
-				lcd_send_string(" NORMAL ");
-			}
-			if (2800<= check_batt < 3400)
-			{
-				lcd_put_cur(1,8);
-				lcd_send_string("   LOW  ");
-			}
-			if ( check_batt <2800)
-			{
-				lcd_put_cur(1,8);
-				lcd_send_string("VERY LOW");
-			}
-		*/
 			delay_ms(200);
 		}
+*/
 	}
-
-	
-//DISPLAY 1
-while (screen == 1)
-{
-	lcd_put_cur(0,0);
-	lcd_send_string("1. CHANGE PASS  ");
-	lcd_put_cur(1,0);
-	lcd_send_string("       1/3      ");	
-}
-
-//DISPLAY 2
-while (screen == 2)
-{
-	lcd_put_cur(0,0);
-	lcd_send_string("2. BATTERY POWER");
-	lcd_put_cur(1,0);
-	lcd_send_string("       2/3      ");	
-}
-
-//DISPLAY 3
-while( screen == 3)
-{
-	lcd_put_cur(0,0);
-	lcd_send_string("3. EXIT OPTION  ");
-	lcd_put_cur(1,0);
-	lcd_send_string("       3/3      ");
-}
 }
   /* USER CODE END 3 */
-}
+
 
 /**
   * @brief System Clock Configuration
